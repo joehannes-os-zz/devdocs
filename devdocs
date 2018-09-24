@@ -1,0 +1,23 @@
+#!/usr/bin/zsh
+
+PATH=~/bin:/usr/local/bin:/bin:/usr/bin:/usr/sbin
+
+manuD=~/.manu-pages/html
+
+cat=$(ls $manuD | peco)
+method=$(echo "search\nlist" | yank-cli -d \n)
+
+if [[ $method = "search" ]]; then
+	vared -p 'Search Expression:$> ' -c search
+	search=$(echo $search | sed 's/+/.*/g')
+	res=$(ag -l -S "$search" $manuD/$cat/)
+	if [[ -n $res ]]; then
+		res=$(echo $res | peco)
+		elinks $res
+	else
+		echo "Search >>$search<< didn't match anything ..."
+	fi
+else
+	res=$(ls $manuD/$cat | peco)
+	elinks $manuD/$cat/$res
+fi
