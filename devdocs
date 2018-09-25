@@ -2,12 +2,14 @@
 
 PATH=~/bin:/usr/local/bin:/bin:/usr/bin:/usr/sbin
 
+getopts s searchOnly
+
 manuD=~/.manu-pages/html
 
-cat=$(ls $manuD | peco)
-method=$(echo "search\nlist" | yank-cli -d \n)
+cat=javascript
+method=list
 
-if [[ $method = "search" ]]; then
+_search() {
 	vared -p 'Search Expression:$> ' -c search
 	search=$(echo $search | sed 's/+/.*/g')
 	res=$(ag -l -S "$search" $manuD/$cat/)
@@ -16,8 +18,31 @@ if [[ $method = "search" ]]; then
 		elinks $res
 	else
 		echo "Search >>$search<< didn't match anything ..."
+		exit 1
 	fi
+}
+_promptCat() {
+	cat=$(ls $manuD | peco)
+}
+_promptMethod() {
+	method=$(echo "search\nlist" | yank-cli -d \n)
+}
+
+if [[ -n $searchOnly ]]; then
+	_promptCat
+	_search
+	exit 0
 else
-	res=$(ls $manuD/$cat | peco)
-	elinks $manuD/$cat/$res
+	_promptCat
+	_promptMethod
+
+	if [[ $method = "search" ]]; then
+		_search
+	else
+		res=$(ls $manuD/$cat | peco)
+		elinks $manuD/$cat/$res
+
+	fi
 fi
+
+exit 0
